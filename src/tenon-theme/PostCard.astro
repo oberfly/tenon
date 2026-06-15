@@ -1,9 +1,9 @@
 ---
 /**
- * Tenon Theme — PostCard
+ * Tenon Theme — PostCard（文章卡片组件）
  *
- * 文章卡片组件。列表页和首页用它渲染每篇文章。
- * D1 tenon_modules.ui_component = "PostCard" 时，ComponentMapper 匹配到此组件。
+ * 列表页和首页用它渲染每篇文章。
+ * D1 tenon_modules.ui_component = "PostCard" → ComponentMapper 匹配此组件。
  */
 
 export interface Props {
@@ -24,19 +24,23 @@ const { entry } = Astro.props;
 const url = `/${entry.id}/`;
 ---
 
-<article style="padding: 1.25rem; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-card);">
-	<a href={url} style="text-decoration: none; color: inherit;">
-		<h2 style="font-size: 1.125rem; font-weight: 600; margin: 0 0 0.375rem; color: var(--color-text);">
+<article class="card">
+	<a href={url}>
+		<h2 style="font-size:1.125rem;font-weight:600;margin:0 0 0.375rem;color:var(--color-text);line-height:1.4;">
 			{entry.data.title}
 		</h2>
-		<div style="font-size: 0.875rem; color: var(--color-text-muted); display: flex; gap: 0.5rem; align-items: center;">
+		<div style="font-size:0.8125rem;color:var(--color-text-muted);display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
 			<time>{entry.data.published.toLocaleDateString("zh-CN")}</time>
 			{entry.data.tags?.length > 0 && (
-				<span>· {entry.data.tags.slice(0, 3).join(", ")}</span>
+				<span class="post-tags" style="gap:0.3rem;">
+					{entry.data.tags.slice(0, 3).map((t) => (
+						<span class="tag">{t}</span>
+					))}
+				</span>
 			)}
 		</div>
 		{entry.data.description && (
-			<p style="font-size: 0.9375rem; color: var(--color-text-secondary); margin: 0.5rem 0 0; line-height: 1.6;">
+			<p style="font-size:0.9375rem;color:var(--color-text-secondary);margin:0.5rem 0 0;line-height:1.65;">
 				{entry.data.description}
 			</p>
 		)}

@@ -5,35 +5,41 @@ import { getModuleEntries } from "../utils/content-utils";
 const posts = await getModuleEntries("posts");
 ---
 <BaseLayout title="首页" description="Tenon — 极致纯粹、动静绝对分离的现代动态内容引擎。">
-	<section style="margin-bottom: 3rem;">
-		<h1 style="font-size: 2.25rem; font-weight: 700; margin-bottom: 0.5rem;">
-			Tenon
-		</h1>
-		<p style="color: var(--color-text-secondary); font-size: 1.125rem; max-width: 600px;">
-			极致纯粹、动静绝对分离的现代动态内容引擎
-		</p>
+	<!-- Hero -->
+	<section class="hero">
+		<h1>Tenon</h1>
+		<p>极致纯粹、动静绝对分离的现代动态内容引擎</p>
 	</section>
 
+	<!-- 文章列表 -->
 	<section>
-		<h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--color-text);">
-			最新文章
-		</h2>
+		<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1rem;">
+			<h2 style="font-size:1.125rem;font-weight:600;color:var(--color-text);margin:0;">最新文章</h2>
+			<a href="/posts/" style="font-size:0.875rem;">全部 →</a>
+		</div>
 
 		{posts.length === 0 ? (
-			<p style="color: var(--color-text-muted);">暂无文章。</p>
+			<p style="color:var(--color-text-muted);">暂无文章。</p>
 		) : (
-			<div style="display: flex; flex-direction: column; gap: 1rem;">
+			<div class="content-grid">
 				{posts.slice(0, 10).map((post) => (
-					<article style="padding: 1.25rem; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-card);">
-						<a href={`/${post.id}/`} style="text-decoration: none; color: inherit;">
-							<h3 style="font-size: 1.125rem; font-weight: 600; margin: 0 0 0.375rem; color: var(--color-text);">
+					<article class="card">
+						<a href={`/${post.id}/`}>
+							<h3 style="font-size:1.125rem;font-weight:600;margin:0 0 0.375rem;color:var(--color-text);line-height:1.4;">
 								{post.data.title}
 							</h3>
-							<time style="font-size: 0.875rem; color: var(--color-text-muted);">
-								{post.data.published.toLocaleDateString("zh-CN")}
-							</time>
+							<div style="font-size:0.8125rem;color:var(--color-text-muted);display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+								<time>{post.data.published.toLocaleDateString("zh-CN")}</time>
+								{post.data.tags?.length > 0 && (
+									<span class="post-tags" style="gap:0.3rem;">
+										{post.data.tags.slice(0, 3).map((t) => (
+											<span class="tag">{t}</span>
+										))}
+									</span>
+								)}
+							</div>
 							{post.data.description && (
-								<p style="font-size: 0.9375rem; color: var(--color-text-secondary); margin: 0.5rem 0 0; line-height: 1.6;">
+								<p style="font-size:0.9375rem;color:var(--color-text-secondary);margin:0.5rem 0 0;line-height:1.65;">
 									{post.data.description}
 								</p>
 							)}
