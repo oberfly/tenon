@@ -1,0 +1,59 @@
+---
+/**
+ * Tenon Theme — TagCloud Widget
+ * 侧边栏标签云
+ */
+
+import { getCollection } from "astro:content";
+
+// 从 posts 模块收集所有标签
+const allPosts = await getCollection("tenon", ({ data }) => data.module === "posts");
+const tagCount: Record<string, number> = {};
+for (const post of allPosts) {
+	const tags = post.data.tags as string[] || [];
+	for (const t of tags) {
+		tagCount[t] = (tagCount[t] || 0) + 1;
+	}
+}
+const tags = Object.entries(tagCount)
+	.sort((a, b) => a[0].localeCompare(b[0]))
+	.slice(0, 20);
+---
+
+<div class="widget">
+	<h3 class="widget-title">标签</h3>
+	<div class="tag-cloud">
+		{tags.map(([tag, count]) => (
+			<a href={`/posts/?tag=${encodeURIComponent(tag)}`} class="tag">
+				{tag} <span style="opacity:0.5;font-size:0.75rem;">{count}</span>
+			</a>
+		))}
+		{tags.length === 0 && <span class="text-muted">暂无标签</span>}
+	</div>
+</div>
+
+<style>
+.widget {
+	margin-bottom: 1.5rem;
+}
+.widget-title {
+	font-size: 0.8125rem;
+	font-weight: 600;
+	color: var(--color-text-secondary);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin: 0 0 0.75rem;
+}
+.tag-cloud {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.375rem;
+}
+.tag-cloud .tag {
+	font-size: 0.8125rem;
+}
+.text-muted {
+	color: var(--color-text-muted);
+	font-size: 0.8125rem;
+}
+</style>

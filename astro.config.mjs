@@ -12,7 +12,6 @@ import remarkDirective from "remark-directive";/* Handle directives */
 import remarkGithubAdmonitionsToDirectives from "remark-github-admonitions-to-directives";
 import remarkMath from "remark-math";
 import remarkSectionize from "remark-sectionize";
-import { imageFallbackConfig, siteConfig } from "./src/config.ts";
 import { AdmonitionComponent } from "./src/plugins/rehype-component-admonition.mjs";
 import { GithubCardComponent } from "./src/plugins/rehype-component-github-card.mjs";
 import rehypeImageFallback from "./src/plugins/rehype-image-fallback.mjs";
@@ -23,8 +22,7 @@ import rehypeExternalLinks from 'rehype-external-links';
 import expressiveCode from "astro-expressive-code";
 import { pluginCollapsibleSections } from "@expressive-code/plugin-collapsible-sections";
 import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
-import { expressiveCodeConfig } from "./src/config.ts";
-// import { pluginLanguageBadge } from "./src/plugins/expressive-code/language-badge.ts";
+// expressive code theme + plugins
 import { pluginCustomCopyButton } from "./src/plugins/expressive-code/custom-copy-button.js";
 // import vercel from "@astrojs/vercel"; // 静态构建不需要 adapter
 
@@ -33,7 +31,7 @@ export default defineConfig({
     image: {
         service: passthroughImageService()
     },
-    site: "https://blog.chaosyn.com",
+    site: "http://localhost:4321",
     base: "/",
     trailingSlash: "always",
     output: "static",
@@ -70,7 +68,7 @@ export default defineConfig({
 			lastmod: new Date(),
 		}),
 	    expressiveCode({
-			themes: [expressiveCodeConfig.theme, expressiveCodeConfig.theme],
+			themes: ["github-dark", "github-dark"],
 			plugins: [
 				pluginCollapsibleSections(),
 				pluginLineNumbers(),
@@ -127,7 +125,7 @@ export default defineConfig({
         rehypePlugins: [
             rehypeKatex,
             rehypeSlug,
-            [rehypeImageFallback, imageFallbackConfig],
+            [rehypeImageFallback, { enable: false }],
             [
                 rehypeComponents,
                 {

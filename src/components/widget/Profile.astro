@@ -1,0 +1,78 @@
+---
+/**
+ * Tenon Theme — Profile Widget
+ * 侧边栏个人卡片
+ */
+
+import { profileConfig } from "../../config";
+const p = profileConfig;
+---
+
+<div class="widget">
+	<div class="profile-card">
+		{p.avatar && (
+			<img src={p.avatar} alt={p.name} class="profile-avatar" />
+		)}
+		<div class="profile-name">{p.name}</div>
+		{p.bio && <div class="profile-bio">{p.bio}</div>}
+		{p.links.length > 0 && (
+			<div class="profile-links">
+				{p.links.map((link) => (
+					<a href={link.url} target="_blank" rel="noopener" class="profile-link">
+						{link.name}
+					</a>
+				))}
+			</div>
+		)}
+	</div>
+</div>
+
+<style>
+.widget {
+	margin-bottom: 1.5rem;
+}
+.profile-card {
+	background: var(--color-card);
+	border: 1px solid var(--color-border-light);
+	border-radius: var(--radius-lg);
+	padding: 1.25rem;
+	text-align: center;
+}
+.profile-avatar {
+	width: 72px;
+	height: 72px;
+	border-radius: 50%;
+	object-fit: cover;
+	margin: 0 auto 0.75rem;
+	border: 2px solid var(--color-primary-light);
+}
+.profile-name {
+	font-weight: 700;
+	font-size: 1.0625rem;
+	color: var(--color-text);
+	margin-bottom: 0.25rem;
+}
+.profile-bio {
+	font-size: 0.8125rem;
+	color: var(--color-text-muted);
+	margin-bottom: 0.75rem;
+	line-height: 1.5;
+}
+.profile-links {
+	display: flex;
+	justify-content: center;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+}
+.profile-link {
+	font-size: 0.8125rem;
+	color: var(--color-primary);
+	text-decoration: none;
+	padding: 0.25rem 0.5rem;
+	border-radius: var(--radius-sm);
+	transition: background var(--transition-fast);
+}
+.profile-link:hover {
+	background: var(--color-primary-light);
+}
+</style>
