@@ -1,0 +1,107 @@
+/**
+ * Tenon Theme — CSS 变量体系
+ *
+ * 零门槛换肤：覆盖这些变量即可切换整个站点的视觉风格。
+ * D1 不存储任何主题样式字段——明暗/色相/布局全部由此 CSS 决定。
+ */
+
+/* ===== Light Mode（默认）===== */
+:root {
+	/* 颜色 */
+	--color-bg: #ffffff;
+	--color-bg-secondary: #f9fafb;
+	--color-text: #111827;
+	--color-text-secondary: #6b7280;
+	--color-text-muted: #9ca3af;
+	--color-primary: #2563eb;
+	--color-primary-hover: #1d4ed8;
+	--color-primary-light: #eff6ff;
+	--color-card: #ffffff;
+	--color-card-hover: #f9fafb;
+	--color-border: #e5e7eb;
+
+	/* 排版 */
+	--font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	--font-mono: ui-monospace, "Cascadia Code", "JetBrains Mono", monospace;
+
+	/* 圆角 */
+	--radius-sm: 0.375rem;
+	--radius-md: 0.5rem;
+	--radius-lg: 0.75rem;
+
+	/* 布局 */
+	--max-width: 720px;
+	--content-padding: 2rem;
+}
+
+/* ===== Dark Mode ===== */
+html.dark {
+	--color-bg: #0f172a;
+	--color-bg-secondary: #1e293b;
+	--color-text: #f1f5f9;
+	--color-text-secondary: #94a3b8;
+	--color-text-muted: #64748b;
+	--color-primary: #3b82f6;
+	--color-primary-hover: #60a5fa;
+	--color-primary-light: #1e3a5f;
+	--color-card: #1e293b;
+	--color-card-hover: #334155;
+	--color-border: #334155;
+}
+
+/* ===== 基础排版 ===== */
+body {
+	font-family: var(--font-sans);
+	background: var(--color-bg);
+	color: var(--color-text);
+	line-height: 1.7;
+	margin: 0;
+	padding: 0;
+}
+
+a {
+	color: var(--color-primary);
+	text-decoration: none;
+}
+a:hover {
+	color: var(--color-primary-hover);
+}
+
+/* ===== 文章正文排版（详情页 Markdown 渲染区）===== */
+.prose h1, .prose h2, .prose h3, .prose h4 {
+	color: var(--color-text);
+	line-height: 1.35;
+	margin-top: 2rem;
+	margin-bottom: 0.75rem;
+}
+.prose h1 { font-size: 1.875rem; font-weight: 700; }
+.prose h2 { font-size: 1.5rem; font-weight: 600; }
+.prose h3 { font-size: 1.25rem; font-weight: 600; }
+.prose p { margin: 1rem 0; }
+.prose strong { font-weight: 700; }
+.prose blockquote {
+	border-left: 3px solid var(--color-primary);
+	padding-left: 1rem;
+	margin: 1rem 0;
+	color: var(--color-text-secondary);
+}
+.prose code {
+	background: var(--color-bg-secondary);
+	padding: 0.125rem 0.375rem;
+	border-radius: var(--radius-sm);
+	font-family: var(--font-mono);
+	font-size: 0.875em;
+}
+.prose pre {
+	background: var(--color-bg-secondary);
+	padding: 1rem;
+	border-radius: var(--radius-md);
+	overflow-x: auto;
+	font-family: var(--font-mono);
+	font-size: 0.875rem;
+}
+.prose ul, .prose ol { padding-left: 1.5rem; margin: 1rem 0; }
+.prose img { max-width: 100%; border-radius: var(--radius-md); }
+.prose table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+.prose th, .prose td { border: 1px solid var(--color-border); padding: 0.5rem 0.75rem; text-align: left; }
+.prose th { background: var(--color-bg-secondary); font-weight: 600; }

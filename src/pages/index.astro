@@ -1,41 +1,46 @@
 ---
-// Tenon — 首页（临时，阶段 3 由 Tenon Theme 接管）
+import BaseLayout from "../layouts/BaseLayout.astro";
 import { getModuleEntries } from "../utils/content-utils";
 
 const posts = await getModuleEntries("posts");
 ---
-<!doctype html>
-<html lang="zh-CN">
-<head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>Tenon</title>
-	<style>
-		body { font-family: system-ui, sans-serif; max-width: 720px; margin: 0 auto; padding: 2rem; }
-		h1 { font-size: 1.75rem; font-weight: 700; }
-		.subtitle { color: #888; margin-bottom: 2rem; }
-		.post-list { list-style: none; padding: 0; }
-		.post-item a { display: block; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; text-decoration: none; color: inherit; margin-bottom: 0.75rem; }
-		.post-item a:hover { border-color: #3b82f6; }
-		.post-title { font-weight: 700; font-size: 1.125rem; }
-		.post-meta { font-size: 0.875rem; color: #888; margin-top: 0.25rem; }
-	</style>
-</head>
-<body>
-	<h1>Tenon</h1>
-	<p class="subtitle">多内容形态引擎 · 极简、纯粹</p>
+<BaseLayout title="首页" description="Tenon — 极致纯粹、动静绝对分离的现代动态内容引擎。">
+	<section style="margin-bottom: 3rem;">
+		<h1 style="font-size: 2.25rem; font-weight: 700; margin-bottom: 0.5rem;">
+			Tenon
+		</h1>
+		<p style="color: var(--color-text-secondary); font-size: 1.125rem; max-width: 600px;">
+			极致纯粹、动静绝对分离的现代动态内容引擎
+		</p>
+	</section>
 
-	<ul class="post-list">
-		{posts.map((post) => (
-			<li class="post-item">
-				<a href={`/${post.id}/`}>
-					<div class="post-title">{post.data.title}</div>
-					<div class="post-meta">
-						{post.data.published.toLocaleDateString("zh-CN")}
-					</div>
-				</a>
-			</li>
-		))}
-	</ul>
-</body>
-</html>
+	<section>
+		<h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--color-text);">
+			最新文章
+		</h2>
+
+		{posts.length === 0 ? (
+			<p style="color: var(--color-text-muted);">暂无文章。</p>
+		) : (
+			<div style="display: flex; flex-direction: column; gap: 1rem;">
+				{posts.slice(0, 10).map((post) => (
+					<article style="padding: 1.25rem; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-card);">
+						<a href={`/${post.id}/`} style="text-decoration: none; color: inherit;">
+							<h3 style="font-size: 1.125rem; font-weight: 600; margin: 0 0 0.375rem; color: var(--color-text);">
+								{post.data.title}
+							</h3>
+							<time style="font-size: 0.875rem; color: var(--color-text-muted);">
+								{post.data.published.toLocaleDateString("zh-CN")}
+							</time>
+							{post.data.description && (
+								<p style="font-size: 0.9375rem; color: var(--color-text-secondary); margin: 0.5rem 0 0; line-height: 1.6;">
+									{post.data.description}
+								</p>
+							)}
+						</a>
+					</article>
+				))}
+			</div>
+		)}
+	</section>
+</BaseLayout>

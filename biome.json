@@ -29,7 +29,7 @@
   },
   "overrides": [
     {
-      "include": ["*.svelte", "*.astro", "*.vue"],
+	      "include": ["*.astro", "*.vue"],
       "linter": {
         "rules": {
           "style": {

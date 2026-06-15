@@ -1,5 +1,5 @@
 ---
-// Tenon Route — 通用模块详情页 /:module/:slug/
+import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection, getEntry, render } from "astro:content";
 import { getDetailRoutes } from "../../tenon-route/detail";
 
@@ -21,34 +21,39 @@ if (!entry) {
 
 const { Content, headings } = await render(entry);
 ---
-<!doctype html>
-<html lang="zh-CN">
-<head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>{entry.data.title} — Tenon</title>
-	<style>
-		body { font-family: system-ui, sans-serif; max-width: 720px; margin: 0 auto; padding: 2rem; }
-		h1 { font-size: 1.75rem; font-weight: 700; }
-		.back-link { color: #3b82f6; text-decoration: none; margin-bottom: 1rem; display: inline-block; }
-		.meta { color: #888; font-size: 0.875rem; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb; }
-		.prose h2 { font-size: 1.5rem; font-weight: 600; margin-top: 1.5rem; }
-		.prose h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1.25rem; }
-		.prose p { line-height: 1.75; margin: 1rem 0; }
-		.prose strong { font-weight: 700; }
-		.prose code { background: #f3f4f6; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.875em; }
-		.prose ul { padding-left: 1.5rem; margin: 1rem 0; }
-	</style>
-</head>
-<body>
-	<a href={`/${module}/`} class="back-link">← 返回列表</a>
-	<h1>{entry.data.title}</h1>
-	<div class="meta">
-		{entry.data.published.toLocaleDateString("zh-CN")}
-		{entry.data.tags?.length > 0 && ` · ${entry.data.tags.join(", ")}`}
-	</div>
-	<div class="prose">
-		<Content />
-	</div>
-</body>
-</html>
+<BaseLayout title={entry.data.title} description={entry.data.description}>
+	<article>
+		<!-- 元信息 -->
+		<header style="margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--color-border);">
+			<a href={`/${module}/`} style="display: inline-block; font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">
+				← {module}
+			</a>
+			<h1 style="font-size: 2rem; font-weight: 700; margin: 0.5rem 0;">{entry.data.title}</h1>
+			<div style="font-size: 0.875rem; color: var(--color-text-muted); display: flex; gap: 0.5rem; flex-wrap: wrap;">
+				<time>{entry.data.published.toLocaleDateString("zh-CN")}</time>
+				{entry.data.tags?.length > 0 && (
+					<span>· {entry.data.tags.join(", ")}</span>
+				)}
+			</div>
+		</header>
+
+		<!-- 正文 -->
+		<div class="prose">
+			<Content />
+		</div>
+
+		<!-- 上下篇导航 -->
+		<footer style="margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border); display: flex; justify-content: space-between; font-size: 0.875rem;">
+			{entry.data.prevTitle ? (
+				<a href={`/${entry.data.prevSlug}/`} style="color: var(--color-text-secondary);">
+					← {entry.data.prevTitle}
+				</a>
+			) : <span />}
+			{entry.data.nextTitle ? (
+				<a href={`/${entry.data.nextSlug}/`} style="color: var(--color-text-secondary); text-align: right;">
+					{entry.data.nextTitle} →
+				</a>
+			) : <span />}
+		</footer>
+	</article>
+</BaseLayout>

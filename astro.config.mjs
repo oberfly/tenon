@@ -1,5 +1,5 @@
 import sitemap from "@astrojs/sitemap";
-import svelte from "@astrojs/svelte";
+import react from "@astrojs/react";
 import tailwind from "@astrojs/tailwind";
 import swup from "@swup/astro";
 import icon from "astro-icon";
@@ -42,9 +42,9 @@ export default defineConfig({
       "/donate": "/sponsors",
       "/donate/": "/sponsors/"
     },
-    integrations: [tailwind({
-        nesting: true,
-		}), swup({
+	integrations: [tailwind({
+		nesting: true,
+	}), react(), swup({
         theme: false,
         animationClass: "transition-swup-", // see https://swup.js.org/options/#animationselector
         // the default value `transition-` cause transition delay
@@ -64,8 +64,7 @@ export default defineConfig({
             "fa6-solid": ["*"],
             "simple-icons": ["*"],
         },
-		}), svelte(),
-		sitemap({
+}), sitemap({
 			changefreq: 'weekly',
 			priority: 0.7,
 			lastmod: new Date(),

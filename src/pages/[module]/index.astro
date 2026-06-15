@@ -1,6 +1,6 @@
 ---
-// Tenon Route — 通用模块列表页 /:module/
-import { getCollection, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
 import { getModuleRoutes } from "../../tenon-route/list";
 
 export async function getStaticPaths() {
@@ -12,55 +12,34 @@ export async function getStaticPaths() {
 }
 
 const { moduleSlug, moduleName, count } = Astro.props;
-
-// 读取该模块下所有文章
 const entries = await getCollection("tenon", ({ data }) => data.module === moduleSlug);
 const sorted = entries.sort(
 	(a, b) => b.data.published.getTime() - a.data.published.getTime(),
 );
 ---
-<!doctype html>
-<html lang="zh-CN">
-<head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>{moduleName} — Tenon</title>
-	<style>
-		body { font-family: system-ui, sans-serif; max-width: 720px; margin: 0 auto; padding: 2rem; }
-		h1 { font-size: 1.75rem; font-weight: 700; }
-		.subtitle { color: #888; margin-bottom: 2rem; }
-		.post-list { list-style: none; padding: 0; }
-		.post-item { margin-bottom: 1rem; }
-		.post-item a { display: block; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; text-decoration: none; color: inherit; }
-		.post-item a:hover { border-color: #3b82f6; }
-		.post-title { font-weight: 700; font-size: 1.125rem; }
-		.post-meta { font-size: 0.875rem; color: #888; margin-top: 0.25rem; }
-	</style>
-</head>
-<body>
-	<h1>{moduleName}</h1>
-	<p class="subtitle">共 {count} 篇</p>
+<BaseLayout title={moduleName}>
+	<h1 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem;">{moduleName}</h1>
+	<p style="color: var(--color-text-muted); margin-bottom: 2rem;">共 {count} 篇</p>
 
 	{entries.length === 0 ? (
-		<p style="color:#999">暂无内容。</p>
+		<p style="color: var(--color-text-muted);">暂无内容。</p>
 	) : (
-		<ul class="post-list">
+		<div style="display: flex; flex-direction: column; gap: 1rem;">
 			{sorted.map((entry) => {
-				// entry.id = "moduleSlug/contentSlug" → URL: /moduleSlug/contentSlug/
 				const url = `/${entry.id}/`;
 				return (
-					<li class="post-item">
-						<a href={url}>
-							<div class="post-title">{entry.data.title}</div>
-							<div class="post-meta">
+					<article style="padding: 1.25rem; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-card);">
+						<a href={url} style="text-decoration: none; color: inherit;">
+							<h2 style="font-size: 1.125rem; font-weight: 600; margin: 0 0 0.375rem; color: var(--color-text);">
+								{entry.data.title}
+							</h2>
+							<time style="font-size: 0.875rem; color: var(--color-text-muted);">
 								{entry.data.published.toLocaleDateString("zh-CN")}
-								{entry.data.tags?.length > 0 && ` · ${entry.data.tags.join(", ")}`}
-							</div>
+							</time>
 						</a>
-					</li>
+					</article>
 				);
 			})}
-		</ul>
+		</div>
 	)}
-</body>
-</html>
+</BaseLayout>
