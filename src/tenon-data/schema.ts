@@ -18,6 +18,7 @@ export const tenonModules = sqliteTable("tenon_modules", {
 	is_enabled: integer("is_enabled").notNull().default(1),
 	// SQLite 没有原生布尔，用 INTEGER 0/1 存
 	sort_order: integer("sort_order").notNull().default(0),
+	archive_mode: text("archive_mode").notNull().default("published"),
 	created_at: text("created_at")
 		.notNull()
 		.default(sql`(datetime('now'))`),

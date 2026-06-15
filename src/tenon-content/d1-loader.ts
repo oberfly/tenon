@@ -12,6 +12,94 @@ import type { Loader } from "astro/loaders";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
 
+// ---- 动态字段校验规则 ----
+
+interface FieldValidationRules {
+	type?: string;
+	required?: boolean;
+	min?: number;
+	max?: number;
+	values?: string[];
+}
+
+interface TenonField {
+	id: string;
+	module_id: string;
+	name: string;
+	field_type: string;
+	default_value: string;
+	validations: string | FieldValidationRules;
+}
+
+/** 针对一条字段的校验规则，验证一个 custom_data 值 */
+function validateField(
+	value: unknown,
+	rules: FieldValidationRules,
+): { valid: boolean; error?: string } {
+	if (value === undefined || value === null) {
+		if (rules.required) return { valid: false, error: "必填" };
+		return { valid: true };
+	}
+
+	const t = rules.type || "text";
+
+	switch (t) {
+		case "string":
+		case "text": {
+			if (typeof value !== "string")
+				return { valid: false, error: `应为字符串` };
+			if (rules.min !== undefined && value.length < rules.min)
+				return { valid: false, error: `最小 ${rules.min} 字符` };
+			if (rules.max !== undefined && value.length > rules.max)
+				return { valid: false, error: `最大 ${rules.max} 字符` };
+			return { valid: true };
+		}
+		case "number": {
+			const n = Number(value);
+			if (isNaN(n)) return { valid: false, error: "应为数字" };
+			if (rules.min !== undefined && n < rules.min)
+				return { valid: false, error: `最小 ${rules.min}` };
+			if (rules.max !== undefined && n > rules.max)
+				return { valid: false, error: `最大 ${rules.max}` };
+			return { valid: true };
+		}
+		case "boolean": {
+			if (typeof value === "boolean") return { valid: true };
+			if (value === "true" || value === "false" || value === 1 || value === 0)
+				return { valid: true };
+			return { valid: false, error: "应为布尔值" };
+		}
+		case "array": {
+			if (!Array.isArray(value)) return { valid: false, error: "应为数组" };
+			return { valid: true };
+		}
+		case "enum":
+		case "select": {
+			if (!rules.values?.includes(String(value)))
+				return {
+					valid: false,
+					error: `应为 ${rules.values?.join("/")} 之一`,
+				};
+			return { valid: true };
+		}
+		default:
+			return { valid: true }; // 未知类型宽进
+	}
+}
+
+/** 解析字段的 validations JSON */
+function parseRules(field: TenonField): FieldValidationRules {
+	if (!field.validations) return {};
+	if (typeof field.validations === "string") {
+		try {
+			return JSON.parse(field.validations);
+		} catch {
+			return {};
+		}
+	}
+	return field.validations;
+}
+
 export interface D1LoaderOptions {
 	/** D1 binding 名称（对应 wrangler.jsonc 里的 binding），默认 "tenon_db" */
 	binding?: string;
@@ -64,7 +152,25 @@ export function d1Loader(opts: D1LoaderOptions = {}): Loader {
 					return;
 				}
 
-				// 2. 读取所有已发布内容（不限模块）
+				// 1.5. 读取所有模块的字段定义 → 动态校验规则
+					const allFields = await db
+						.prepare("SELECT * FROM tenon_fields ORDER BY sort_order")
+						.all<TenonField>();
+
+					// module_id → fields[] 映射表
+					const fieldsByModule = new Map<string, TenonField[]>();
+					for (const f of allFields.results) {
+						if (!fieldsByModule.has(f.module_id)) {
+							fieldsByModule.set(f.module_id, []);
+						}
+						fieldsByModule.get(f.module_id)!.push(f);
+					}
+
+					logger.info(
+						`d1Loader: ${allFields.results.length} field definitions loaded for ${fieldsByModule.size} modules`,
+					);
+
+					// 2. 读取所有已发布内容（不限模块）
 				const allContents = await db
 					.prepare(
 						`SELECT id, module_id, title, slug, date, status, cover, body_md, custom_data
@@ -120,7 +226,21 @@ export function d1Loader(opts: D1LoaderOptions = {}): Loader {
 						);
 					}
 
-					// 构建 flat entry data（固定字段 + custom_data 展开）
+						// 动态 Zod 严出：根据 tenon_fields 校验 custom_data
+						const moduleFields = fieldsByModule.get(row.module_id) || [];
+						for (const field of moduleFields) {
+							const rules = parseRules(field);
+							const val = customData[field.name];
+							const result = validateField(val, rules);
+							if (!result.valid) {
+								logger.warn(
+									`d1Loader: "${row.slug}" field "${field.name}" = ${JSON.stringify(val)} — ${result.error}`,
+								);
+								customData[field.name] = undefined; // 清除不合规值
+							}
+						}
+
+						// 构建 flat entry data（固定字段 + custom_data 展开）
 					const rawData: Record<string, unknown> = {
 						// 核心固定字段
 						title: row.title,
