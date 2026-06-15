@@ -1,0 +1,27 @@
+---
+// Tenon Bridge — 降级卡片（ui_component 无匹配时使用）
+// 极简展示：标题 + 日期 + 链接
+export interface Props {
+	entry: {
+		id: string;
+		data: {
+			title: string;
+			published: Date;
+			module: string;
+			tags?: string[];
+		};
+	};
+}
+
+const { entry } = Astro.props;
+const url = `/${entry.id}/`;
+---
+<div style="padding:1rem;border:1px solid #e5e7eb;border-radius:0.5rem;margin-bottom:0.75rem">
+	<a href={url} style="font-weight:700;font-size:1.125rem;text-decoration:none;color:inherit">
+		{entry.data.title}
+	</a>
+	<div style="font-size:0.875rem;color:#888;margin-top:0.25rem">
+		{entry.data.published.toLocaleDateString("zh-CN")}
+		{entry.data.tags?.length > 0 && ` · ${entry.data.tags.join(", ")}`}
+	</div>
+</div>

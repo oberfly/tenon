@@ -1,0 +1,54 @@
+---
+// Tenon Route — 通用模块详情页 /:module/:slug/
+import { getCollection, getEntry, render } from "astro:content";
+import { getDetailRoutes } from "../../tenon-route/detail";
+
+export async function getStaticPaths() {
+	const routes = await getDetailRoutes();
+	return routes.map((r) => ({
+		params: { module: r.module, slug: r.slug },
+		props: { module: r.module, slug: r.slug },
+	}));
+}
+
+const { module, slug } = Astro.props;
+const entryId = `${module}/${slug}`;
+const entry = await getEntry("tenon", entryId);
+
+if (!entry) {
+	return new Response("Not Found", { status: 404 });
+}
+
+const { Content, headings } = await render(entry);
+---
+<!doctype html>
+<html lang="zh-CN">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>{entry.data.title} — Tenon</title>
+	<style>
+		body { font-family: system-ui, sans-serif; max-width: 720px; margin: 0 auto; padding: 2rem; }
+		h1 { font-size: 1.75rem; font-weight: 700; }
+		.back-link { color: #3b82f6; text-decoration: none; margin-bottom: 1rem; display: inline-block; }
+		.meta { color: #888; font-size: 0.875rem; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb; }
+		.prose h2 { font-size: 1.5rem; font-weight: 600; margin-top: 1.5rem; }
+		.prose h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1.25rem; }
+		.prose p { line-height: 1.75; margin: 1rem 0; }
+		.prose strong { font-weight: 700; }
+		.prose code { background: #f3f4f6; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.875em; }
+		.prose ul { padding-left: 1.5rem; margin: 1rem 0; }
+	</style>
+</head>
+<body>
+	<a href={`/${module}/`} class="back-link">← 返回列表</a>
+	<h1>{entry.data.title}</h1>
+	<div class="meta">
+		{entry.data.published.toLocaleDateString("zh-CN")}
+		{entry.data.tags?.length > 0 && ` · ${entry.data.tags.join(", ")}`}
+	</div>
+	<div class="prose">
+		<Content />
+	</div>
+</body>
+</html>

@@ -1,32 +1,41 @@
 ---
-import HomeHero from "../components/home/HomeHero.astro";
-import MainGridLayout from "../layouts/MainGridLayout.astro";
-import { getSortedPosts } from "../utils/content-utils";
+// Tenon — 首页（临时，阶段 3 由 Tenon Theme 接管）
+import { getModuleEntries } from "../utils/content-utils";
 
-const posts = await getSortedPosts("zh-CN");
-const pinnedPosts = posts.filter((entry) => entry.data.pinned === true);
-const featuredPosts = [
-	...pinnedPosts,
-	...posts.filter((entry) => entry.data.pinned !== true),
-].slice(0, 3);
-
-const tags = Array.from(
-	posts
-		.flatMap((entry) => entry.data.tags || [])
-		.reduce((counts, tag) => {
-			counts.set(tag, (counts.get(tag) || 0) + 1);
-			return counts;
-		}, new Map<string, number>()),
-)
-	.sort((a, b) => b[1] - a[1])
-	.slice(0, 8)
-	.map(([name, count]) => ({ name, count }));
-
-const pageTitle = "首页";
-const pageDescription =
-	"潮思Chaosyn的首页，记录 Serverless、AI 应用开发、认知科学、学习方法与前端工程实践。";
+const posts = await getModuleEntries("posts");
 ---
+<!doctype html>
+<html lang="zh-CN">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Tenon</title>
+	<style>
+		body { font-family: system-ui, sans-serif; max-width: 720px; margin: 0 auto; padding: 2rem; }
+		h1 { font-size: 1.75rem; font-weight: 700; }
+		.subtitle { color: #888; margin-bottom: 2rem; }
+		.post-list { list-style: none; padding: 0; }
+		.post-item a { display: block; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; text-decoration: none; color: inherit; margin-bottom: 0.75rem; }
+		.post-item a:hover { border-color: #3b82f6; }
+		.post-title { font-weight: 700; font-size: 1.125rem; }
+		.post-meta { font-size: 0.875rem; color: #888; margin-top: 0.25rem; }
+	</style>
+</head>
+<body>
+	<h1>Tenon</h1>
+	<p class="subtitle">多内容形态引擎 · 极简、纯粹</p>
 
-<MainGridLayout title={pageTitle} description={pageDescription} hideSidebar={true}>
-	<HomeHero featuredPosts={featuredPosts} tags={tags} />
-</MainGridLayout>
+	<ul class="post-list">
+		{posts.map((post) => (
+			<li class="post-item">
+				<a href={`/${post.id}/`}>
+					<div class="post-title">{post.data.title}</div>
+					<div class="post-meta">
+						{post.data.published.toLocaleDateString("zh-CN")}
+					</div>
+				</a>
+			</li>
+		))}
+	</ul>
+</body>
+</html>

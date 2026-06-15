@@ -1,105 +1,40 @@
-import { glob } from 'astro/loaders';
-import { defineCollection, z } from 'astro:content';
-import { d1Loader } from './loaders/d1-loader';
+/**
+ * Tenon Content — Astro Content Collections 配置
+ *
+ * 单一 tenon 集合，d1Loader 读取所有 module 的内容。
+ * 新增内容类型只需 D1 配置一条 module 记录，零代码改动。
+ */
 
-const postsCollection = defineCollection({
-	loader: glob({ pattern: '**/*.md', base: './src/content/posts' }),
+import { defineCollection, z } from "astro:content";
+import { d1Loader } from "./tenon-content/d1-loader";
+
+const tenonCollection = defineCollection({
+	loader: d1Loader(),
+
 	schema: z.object({
+		// === 核心固定字段（所有 module 共有）===
 		title: z.string(),
+		module: z.string(), // module slug，如 "posts"
+		moduleId: z.string(), // module UUID
+		ui_component: z.string().optional().default("DefaultCard"),
+
+		// 时间
 		published: z.date(),
 		updated: z.date().optional(),
-		draft: z.boolean().optional().default(false),
-		description: z.string().optional().default(""),
-		image: z.string().optional().default(""),
-		tags: z.array(z.string()).optional().default([]),
-		lang: z
-			.preprocess((value) => {
-				if (typeof value !== "string") return value;
-				if (value === "" || value === "zh_CN") return "zh-CN";
-				return value;
-			}, z.enum(["zh-CN", "en"]))
-			.optional()
-			.default("zh-CN"),
-		translationKey: z.string().optional().default(""),
-		pinned: z.boolean().optional().default(false),
-		notionSync: z.boolean().optional().default(false),
-		notionPageId: z.string().optional().default(""),
 
-		/* For internal use */
-		prevTitle: z.string().default(""),
+		// 状态与媒体
+		status: z.string().optional().default("published"),
+		cover: z.string().optional().default(""),
+		body_md: z.string().optional().default(""),
+
+		// === prev/next 导航 ===
 		prevSlug: z.string().default(""),
-		nextTitle: z.string().default(""),
+		prevTitle: z.string().default(""),
 		nextSlug: z.string().default(""),
-	}),
-});
-
-const specCollection = defineCollection({
-	loader: glob({ pattern: '**/*.md', base: './src/content/spec' }),
-	schema: z.object({
-		title: z.string().optional(),
-		published: z.date().optional(),
-		updated: z.date().optional(),
-		draft: z.boolean().optional().default(false),
-	}),
-});
-
-// 图书 collection - 包含 _meta.md 和章节文件
-const booksCollection = defineCollection({
-	loader: glob({ pattern: '**/*.md', base: './src/content/books' }),
-	schema: z.object({
-		title: z.string(),
-		draft: z.boolean().optional().default(false),
-
-		// 图书元信息字段（仅 _meta.md / index.md 使用）
-		author: z.string().optional(),
-		translator: z.string().optional(),
-		published: z.date().optional(),
-		updated: z.date().optional(),
-		description: z.string().optional().default(""),
-		image: z.string().optional().default(""),
-		tags: z.array(z.string()).optional().default([]),
-		status: z.enum(['ongoing', 'completed', 'paused']).optional().default('ongoing'),
-	}),
-});
-
-// D1 直驱测试集合（POC 验证用，posts 不动）
-// 复用 posts 的 schema，数据从 D1 tenon_contents 读
-const postsSchema = z.object({
-	title: z.string(),
-	published: z.date(),
-	updated: z.date().optional(),
-	draft: z.boolean().optional().default(false),
-	description: z.string().optional().default(""),
-	image: z.string().optional().default(""),
-	tags: z.array(z.string()).optional().default([]),
-	lang: z
-		.preprocess((value) => {
-			if (typeof value !== "string") return value;
-			if (value === "" || value === "zh_CN") return "zh-CN";
-			return value;
-		}, z.enum(["zh-CN", "en"]))
-		.optional()
-		.default("zh-CN"),
-	translationKey: z.string().optional().default(""),
-	pinned: z.boolean().optional().default(false),
-	notionSync: z.boolean().optional().default(false),
-	notionPageId: z.string().optional().default(""),
-
-	/* For internal use */
-	prevTitle: z.string().default(""),
-	prevSlug: z.string().default(""),
-	nextTitle: z.string().default(""),
-	nextSlug: z.string().default(""),
-});
-
-const d1TestCollection = defineCollection({
-	loader: d1Loader({ module: 'posts' }),
-	schema: postsSchema,
+		nextTitle: z.string().default(""),
+	}).passthrough(), // 允许各 module 的自定义字段自由透传（如 tags/description/lang 等）
 });
 
 export const collections = {
-	posts: postsCollection,
-	spec: specCollection,
-	books: booksCollection,
-	'd1-test': d1TestCollection,
+	tenon: tenonCollection,
 };
