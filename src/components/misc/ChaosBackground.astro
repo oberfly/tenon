@@ -1,0 +1,426 @@
+---
+// 混沌理论背景 - 洛伦兹吸引子可视化
+// "潮思" / "思潮" 的视觉呈现
+import { siteConfig } from "@/config";
+
+const config = siteConfig.chaosBackground;
+---
+
+<canvas id="chaos-background" class="fixed top-0 left-0 w-full h-full -z-10" style={`opacity: ${config.opacity}`}></canvas>
+
+<script>
+import * as THREE from 'three';
+import { siteConfig } from '@/config';
+
+const config = siteConfig.chaosBackground;
+
+let scene: THREE.Scene;
+let camera: THREE.PerspectiveCamera;
+let renderer: THREE.WebGLRenderer;
+let animationId: number;
+
+// 持久化状态 - 在全局保存，页面切换不重置
+declare global {
+	interface Window {
+		chaosAnimationState?: {
+			time: number;
+			particles: any[];
+			sigma: number;
+			rho: number;
+			beta: number;
+		};
+	}
+}
+
+// 从全局状态恢复或初始化
+let time = (typeof window !== 'undefined' && window.chaosAnimationState?.time) || 0;
+
+// 洛伦兹吸引子参数
+let sigma = (typeof window !== 'undefined' && window.chaosAnimationState?.sigma) || 10;
+let rho = (typeof window !== 'undefined' && window.chaosAnimationState?.rho) || 28;
+let beta = (typeof window !== 'undefined' && window.chaosAnimationState?.beta) || 8 / 3;
+let dt = 0.005; // 时间步长
+
+// 鼠标影响
+let mouse = new THREE.Vector2(0, 0);
+let targetMouse = new THREE.Vector2(0, 0);
+
+// 粒子系统
+interface ChaosParticle {
+	position: THREE.Vector3;
+	velocity: THREE.Vector3;
+	trail: THREE.Vector3[];
+	line: THREE.Line;
+	color: THREE.Color;
+	age: number;
+}
+
+const particles: ChaosParticle[] = [];
+
+function init() {
+	const canvas = document.getElementById('chaos-background') as HTMLCanvasElement;
+	if (!canvas) return;
+
+	// 保存当前状态到全局（如果存在粒子）
+	if (particles.length > 0 && typeof window !== 'undefined') {
+		window.chaosAnimationState = {
+			time,
+			particles: particles.map(p => ({
+				position: p.position.toArray(),
+				trail: p.trail.map(v => v.toArray()),
+				age: p.age
+			})),
+			sigma,
+			rho,
+			beta
+		};
+	}
+
+	// 如果已经初始化过，先清理渲染器
+	if (animationId) {
+		cancelAnimationFrame(animationId);
+		animationId = 0;
+	}
+
+	if (renderer) {
+		renderer.dispose();
+		renderer = null as any;
+	}
+
+	// 清理旧的场景对象
+	particles.forEach(particle => {
+		if (particle.line && scene) {
+			scene.remove(particle.line);
+			particle.line.geometry.dispose();
+			(particle.line.material as THREE.Material).dispose();
+		}
+	});
+	particles.length = 0;
+
+	// 不重置 time、sigma、rho、beta - 保持动画连续性
+	// time 已从全局恢复或保持原值
+
+	// 场景设置
+	scene = new THREE.Scene();
+
+	// 相机设置
+	camera = new THREE.PerspectiveCamera(
+		60,
+		window.innerWidth / window.innerHeight,
+		0.1,
+		1000
+	);
+	camera.position.set(0, 0, 80);
+	camera.lookAt(0, 0, 0);
+
+	// 渲染器设置
+	renderer = new THREE.WebGLRenderer({
+		canvas,
+		alpha: true,
+		antialias: true
+	});
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+	// 创建混沌粒子
+	createChaosParticles();
+
+	// 事件监听
+	window.addEventListener('mousemove', onMouseMove);
+	window.addEventListener('resize', onWindowResize);
+	window.addEventListener('click', onMouseClick);
+
+	// 开始动画循环
+	animate();
+}
+
+function createChaosParticles() {
+	const count = config.particleCount || 15;
+
+	// 尝试从全局状态恢复粒子
+	const savedState = typeof window !== 'undefined' ? window.chaosAnimationState : null;
+	const shouldRestore = savedState && savedState.particles && savedState.particles.length > 0;
+
+	for (let i = 0; i < count; i++) {
+		let x, y, z, trail, age;
+
+		if (shouldRestore && i < savedState.particles.length) {
+			// 从保存的状态恢复
+			const saved = savedState.particles[i];
+			[x, y, z] = saved.position;
+			trail = saved.trail.map((arr: number[]) => new THREE.Vector3(arr[0], arr[1], arr[2]));
+			age = saved.age;
+		} else {
+			// 随机初始位置（在吸引子附近）
+			x = Math.random() * 2 - 1;
+			y = Math.random() * 2 - 1;
+			z = Math.random() * 2 - 1;
+			trail = [];
+			age = 0;
+		}
+
+		// 创建粒子
+		const particle: ChaosParticle = {
+			position: new THREE.Vector3(x, y, z),
+			velocity: new THREE.Vector3(0, 0, 0),
+			trail: trail,
+			line: null as any,
+			color: new THREE.Color(),
+			age: age
+		};
+
+		// 设置颜色（从青色到洋红的渐变）
+		const hue = i / count;
+		particle.color.setHSL(hue * 0.6 + 0.5, 0.8, 0.6);
+
+		// 创建轨迹线
+		const geometry = new THREE.BufferGeometry();
+		const material = new THREE.LineBasicMaterial({
+			color: particle.color,
+			transparent: true,
+			opacity: 0.6,
+			linewidth: 2,
+			blending: THREE.AdditiveBlending
+		});
+		particle.line = new THREE.Line(geometry, material);
+		scene.add(particle.line);
+
+		particles.push(particle);
+	}
+
+	// 添加中心发光球体
+	const sphereGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+	const sphereMaterial = new THREE.MeshBasicMaterial({
+		color: 0x00ffff,
+		transparent: true,
+		opacity: 0.3
+	});
+	const centerSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+	centerSphere.position.set(0, 0, 20);
+	scene.add(centerSphere);
+}
+
+function lorenzStep(pos: THREE.Vector3): THREE.Vector3 {
+	// 洛伦兹吸引子方程
+	// dx/dt = σ(y - x)
+	// dy/dt = x(ρ - z) - y
+	// dz/dt = xy - βz
+
+	const dx = sigma * (pos.y - pos.x);
+	const dy = pos.x * (rho - pos.z) - pos.y;
+	const dz = pos.x * pos.y - beta * pos.z;
+
+	return new THREE.Vector3(dx, dy, dz);
+}
+
+function onMouseMove(event: MouseEvent) {
+	targetMouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+	targetMouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+}
+
+function onMouseClick(event: MouseEvent) {
+	// 点击产生新的思想涌现
+	const x = Math.random() * 4 - 2;
+	const y = Math.random() * 4 - 2;
+	const z = Math.random() * 4 - 2;
+
+	const particle: ChaosParticle = {
+		position: new THREE.Vector3(x, y, z + 20),
+		velocity: new THREE.Vector3(0, 0, 0),
+		trail: [],
+		line: null as any,
+		color: new THREE.Color(),
+		age: 0
+	};
+
+	// 随机颜色
+	const hue = Math.random();
+	particle.color.setHSL(hue, 0.9, 0.7);
+
+	const geometry = new THREE.BufferGeometry();
+	const material = new THREE.LineBasicMaterial({
+		color: particle.color,
+		transparent: true,
+		opacity: 0.8,
+		linewidth: 2,
+		blending: THREE.AdditiveBlending
+	});
+	particle.line = new THREE.Line(geometry, material);
+	scene.add(particle.line);
+
+	particles.push(particle);
+
+	// 限制粒子数量
+	if (particles.length > (config.particleCount || 15) + 10) {
+		const removed = particles.shift();
+		if (removed && removed.line) {
+			scene.remove(removed.line);
+			removed.line.geometry.dispose();
+			(removed.line.material as THREE.Material).dispose();
+		}
+	}
+}
+
+function onWindowResize() {
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function animate() {
+	animationId = requestAnimationFrame(animate);
+	time += 0.01;
+
+	// 平滑鼠标移动
+	mouse.x += (targetMouse.x - mouse.x) * 0.05;
+	mouse.y += (targetMouse.y - mouse.y) * 0.05;
+
+	// 鼠标影响混沌参数
+	rho = 28 + mouse.y * 10; // 混沌程度
+	sigma = 10 + mouse.x * 5; // 系统响应速度
+
+	// 更新每个粒子
+	particles.forEach((particle, index) => {
+		// 计算洛伦兹吸引子的下一步
+		const derivative = lorenzStep(particle.position);
+
+		// 更新位置
+		particle.position.x += derivative.x * dt;
+		particle.position.y += derivative.y * dt;
+		particle.position.z += derivative.z * dt;
+
+		// 缩放到合适的显示范围
+		const scaledPos = new THREE.Vector3(
+			particle.position.x * 0.8,
+			particle.position.y * 0.8,
+			particle.position.z * 0.8
+		);
+
+		// 添加到轨迹
+		particle.trail.push(scaledPos.clone());
+
+		// 限制轨迹长度
+		const maxTrailLength = config.trailLength || 200;
+		if (particle.trail.length > maxTrailLength) {
+			particle.trail.shift();
+		}
+
+		// 更新轨迹线
+		if (particle.trail.length > 1) {
+			const positions = new Float32Array(particle.trail.length * 3);
+			particle.trail.forEach((point, i) => {
+				positions[i * 3] = point.x;
+				positions[i * 3 + 1] = point.y;
+				positions[i * 3 + 2] = point.z;
+			});
+
+			particle.line.geometry.setAttribute(
+				'position',
+				new THREE.BufferAttribute(positions, 3)
+			);
+			particle.line.geometry.attributes.position.needsUpdate = true;
+		}
+
+		// 颜色演化（基于位置和时间）
+		particle.age += 0.001;
+		const hue = (particle.age + Math.sin(time * 0.5) * 0.1) % 1;
+		particle.color.setHSL(hue * 0.6 + 0.5, 0.8, 0.6);
+		(particle.line.material as THREE.LineBasicMaterial).color.copy(particle.color);
+	});
+
+	// 缓慢旋转视角
+	camera.position.x = Math.sin(time * 0.05) * 5;
+	camera.position.y = Math.cos(time * 0.03) * 3;
+	camera.lookAt(0, 0, 20);
+
+	// 定期保存状态到全局（每60帧保存一次）
+	if (Math.floor(time * 100) % 60 === 0 && typeof window !== 'undefined') {
+		window.chaosAnimationState = {
+			time,
+			particles: particles.map(p => ({
+				position: p.position.toArray(),
+				trail: p.trail.map(v => v.toArray()),
+				age: p.age
+			})),
+			sigma,
+			rho,
+			beta
+		};
+	}
+
+	renderer.render(scene, camera);
+}
+
+function cleanup() {
+	// 在清理前保存状态到全局
+	if (particles.length > 0 && typeof window !== 'undefined') {
+		window.chaosAnimationState = {
+			time,
+			particles: particles.map(p => ({
+				position: p.position.toArray(),
+				trail: p.trail.map(v => v.toArray()),
+				age: p.age
+			})),
+			sigma,
+			rho,
+			beta
+		};
+	}
+
+	window.removeEventListener('mousemove', onMouseMove);
+	window.removeEventListener('resize', onWindowResize);
+	window.removeEventListener('click', onMouseClick);
+
+	if (animationId) {
+		cancelAnimationFrame(animationId);
+		animationId = 0;
+	}
+
+	if (renderer) {
+		renderer.dispose();
+		renderer = null as any;
+	}
+
+	// 清理所有粒子（但不清空 particles 数组，保留用于恢复）
+	particles.forEach(particle => {
+		if (particle.line && scene) {
+			scene.remove(particle.line);
+			particle.line.geometry.dispose();
+			(particle.line.material as THREE.Material).dispose();
+		}
+	});
+
+	if (scene) {
+		scene = null as any;
+	}
+}
+
+// 初始化
+if (typeof window !== 'undefined') {
+	init();
+
+	window.addEventListener('beforeunload', cleanup);
+	document.addEventListener('astro:before-swap', cleanup);
+
+	document.addEventListener('astro:after-swap', () => {
+		requestAnimationFrame(() => {
+			const canvas = document.getElementById('chaos-background');
+			if (canvas) {
+				init();
+			}
+		});
+	});
+}
+</script>
+
+<style>
+#chaos-background {
+	pointer-events: none;
+}
+
+/* 点击时允许交互 */
+#chaos-background:hover {
+	pointer-events: auto;
+	cursor: crosshair;
+}
+</style>

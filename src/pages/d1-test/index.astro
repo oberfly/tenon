@@ -1,0 +1,49 @@
+---
+// D1 直驱 POC 测试列表页
+// 验证：构建时从 D1 读取 tenon_contents，渲染成静态 HTML
+import { getCollection } from "astro:content";
+
+const posts = await getCollection("d1-test");
+---
+<!doctype html>
+<html lang="zh-CN">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>D1 直驱测试</title>
+	<style>
+		body { font-family: system-ui, sans-serif; max-width: 720px; margin: 0 auto; padding: 2rem; }
+		h1 { font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem; }
+		.subtitle { color: #888; margin-bottom: 2rem; }
+		.post-list { list-style: none; padding: 0; }
+		.post-item a { display: block; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; text-decoration: none; color: inherit; }
+		.post-item a:hover { border-color: #3b82f6; }
+		.post-title { font-weight: 700; font-size: 1.125rem; }
+		.post-meta { font-size: 0.875rem; color: #888; margin-top: 0.25rem; }
+	</style>
+</head>
+<body>
+	<h1>D1 直驱测试</h1>
+	<p class="subtitle">
+		本页文章来自 Cloudflare D1，构建时由 d1Loader 拉取，纯静态 HTML。
+	</p>
+
+	{posts.length === 0 ? (
+		<p style="color:#999">D1 里没有数据。检查 tenon_contents 表。</p>
+	) : (
+		<ul class="post-list">
+			{posts.map((post) => (
+				<li class="post-item" style="margin-bottom: 0.75rem">
+					<a href={`/d1-test/${post.id}/`}>
+						<div class="post-title">{post.data.title}</div>
+						<div class="post-meta">
+							{post.data.published.toLocaleDateString("zh-CN")}
+							{post.data.tags.length > 0 && ` · ${post.data.tags.join(", ")}`}
+						</div>
+					</a>
+				</li>
+			))}
+		</ul>
+	)}
+</body>
+</html>

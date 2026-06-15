@@ -1,0 +1,16 @@
+{
+	"name": "notion-fuwari",
+	"compatibility_date": "2025-08-11",
+	"pages_build_output_dir": "./dist",
+	"ai": {
+		"binding": "AI"
+	},
+	"d1_databases": [
+		{
+			"binding": "tenon_db",
+			"database_name": "tenon-db",
+			"database_id": "b546ad86-9feb-4dfe-8b14-2e46dcadd510",
+			"remote": true
+		}
+	]
+}
