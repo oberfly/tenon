@@ -11,14 +11,17 @@
       }
     ],
     "paths": {
-      "@components/*": ["src/components/*"],
+      "@components/*": ["src/tenon-theme/fuwari/widget/*", "src/tenon-theme/fuwari/misc/*"],
       "@assets/*": ["src/assets/*"],
-      "@constants/*": ["src/constants/*"],
+      "@constants/*": ["src/tenon-theme/fuwari/constants/*"],
       "@utils/*": ["src/utils/*"],
       "@i18n/*": ["src/i18n/*"],
-      "@layouts/*": ["src/layouts/*"],
+      "@layouts/*": ["src/tenon-layout/blog/*"],
+      "@tenon-theme/*": ["src/tenon-theme/*"],
+      "@tenon-bridge/*": ["src/tenon-bridge/*"],
       "@/*": ["src/*"]
     }
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["system/**/*"]
 }

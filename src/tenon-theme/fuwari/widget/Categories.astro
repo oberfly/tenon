@@ -1,0 +1,35 @@
+---
+/**
+ * Tenon Theme — Categories Widget（对齐 Fuwari categories widget）
+ *
+ * - card-base 包裹 + onload-animation
+ * - 竖条装饰标题
+ * - 分类项使用 category-item 风格 + category-count 徽标
+ */
+
+import { getCollection } from "astro:content";
+
+const allPosts = await getCollection("tenon", ({ data }) => data.module === "posts");
+const catCount: Record<string, number> = {};
+for (const post of allPosts) {
+	const cat = (post.data as any).category as string | undefined;
+	if (cat) {
+		catCount[cat] = (catCount[cat] || 0) + 1;
+	}
+}
+const categories = Object.entries(catCount).sort((a, b) => b[1] - a[1]);
+---
+
+<div class="card-base onload-animation" style="animation-delay: 250ms; padding-bottom: 0.5rem;">
+	<div class="widget-title-bar">分类</div>
+	<div style="padding: 0.5rem 0.75rem;">
+		{categories.length > 0 ? categories.map(([cat, count]) => (
+			<a href={`/posts/?category=${encodeURIComponent(cat)}`} class="category-item">
+				<span>{cat}</span>
+				<span class="category-count">{count}</span>
+			</a>
+		)) : (
+			<span class="text-muted" style="padding:0.5rem;display:block;">暂无分类</span>
+		)}
+	</div>
+</div>

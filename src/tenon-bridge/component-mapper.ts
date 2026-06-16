@@ -8,20 +8,14 @@
 
 import DefaultCard from "./DefaultCard.astro";
 
-/** 扫描 Tenon Theme 目录（阶段 3 激活后生效） */
+/** 扫描 Tenon Theme 目录 */
 const themeComponents = import.meta.glob(
 	"/src/tenon-theme/**/*.astro",
 ) as Record<string, () => Promise<{ default: any }>>;
 
-/** 扫描旧组件目录（阶段 3 过渡期间保留，迁移完成后移除） */
-const legacyComponents = import.meta.glob(
-	"/src/components/**/*.astro",
-) as Record<string, () => Promise<{ default: any }>>;
-
-/** 合并所有可扫描组件 */
+/** 合并所有可扫描组件（tenon-theme 优先） */
 const allComponents: Record<string, () => Promise<{ default: any }>> = {
-	...legacyComponents,
-	...themeComponents, // Tenon Theme 优先覆盖同名旧组件
+	...themeComponents,
 };
 
 /** 从 glob 路径提取组件名（如 /src/tenon-theme/PostCard.astro → PostCard） */

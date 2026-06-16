@@ -1,0 +1,52 @@
+---
+/**
+ * Tenon Theme — TOC Widget（对齐 Fuwari sidebar 风格）
+ *
+ * - card-base 包裹
+ * - 竖条装饰标题
+ * - 缩进层级 + hover 左边框高亮
+ */
+
+interface Props { headings?: { depth: number; slug: string; text: string }[] }
+const { headings = [] } = Astro.props;
+const filtered = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
+---
+
+{filtered.length > 0 && (
+	<div class="card-base" style="padding-bottom:0.75rem;">
+		<div class="widget-title-bar">目录</div>
+		<nav class="toc-nav">
+			<ul class="toc-list">
+				{filtered.map((h) => (
+					<li style={`padding-left:${(h.depth - 2) * 0.75 + 1}rem;`}>
+						<a href={`#${h.slug}`} class="toc-link">{h.text}</a>
+					</li>
+				))}
+			</ul>
+		</nav>
+	</div>
+)}
+
+<style>
+.toc-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+.toc-list li {
+	margin-bottom: 0.125rem;
+}
+.toc-link {
+	font-size: 0.8125rem;
+	color: var(--color-text-muted);
+	text-decoration: none;
+	display: block;
+	padding: 0.25rem 0 0.25rem 0.75rem;
+	border-left: 2px solid transparent;
+	transition: color var(--transition-fast), border-left-color var(--transition-fast);
+}
+.toc-link:hover {
+	color: var(--color-primary);
+	border-left-color: var(--color-primary);
+}
+</style>

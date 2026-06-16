@@ -1,4 +1,4 @@
-import type { AUTO_MODE, DARK_MODE, LIGHT_MODE } from "@constants/constants";
+import type { AUTO_MODE, DARK_MODE, LIGHT_MODE } from "@/tenon-theme/fuwari/constants/constants";
 
 export type SiteConfig = {
 	title: string;

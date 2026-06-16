@@ -1,57 +1,24 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import Profile from "@components/widget/Profile.astro";
-import TagCloud from "@components/widget/TagCloud.astro";
+import BaseLayout from "../tenon-layout/blog/BaseLayout.astro";
+import Profile from "@tenon-theme/fuwari/widget/Profile.astro";
+import TagCloud from "@tenon-theme/fuwari/widget/TagCloud.astro";
+import Categories from "@tenon-theme/fuwari/widget/Categories.astro";
+import PostCard from "@tenon-theme/fuwari/PostCard.astro";
 import { getModuleEntries } from "../utils/content-utils";
 
 const posts = await getModuleEntries("posts");
-const featured = posts.find((p) => (p.data as any).pinned) || posts[0];
-const rest = posts.filter((p) => p !== featured);
 ---
-<BaseLayout title="首页" description="极致纯粹、动静绝对分离的现代动态内容引擎。">
+
+<BaseLayout title="首页" description="极致纯粹、动静绝对分离的现代动态内容引擎。" isHome={true}>
 	<Fragment slot="sidebar">
 		<Profile />
 		<TagCloud />
+		<Categories />
 	</Fragment>
 
-	<section class="hero">
-		<h1>Tenon</h1>
-		<p>极致纯粹、动静绝对分离的现代动态内容引擎</p>
-	</section>
-
-	{featured && (
-		<a href={`/${featured.id}/`} class="featured-card">
-			{featured.data.cover && <div class="featured-card-cover"><img src={featured.data.cover} alt={featured.data.title} /></div>}
-			<div class="featured-card-body">
-				<div class="featured-card-meta">
-					<span class="badge-featured">精选</span>
-					<time>{featured.data.published.toLocaleDateString("zh-CN")}</time>
-				</div>
-				<h2 class="featured-card-title">{featured.data.title}</h2>
-				{featured.data.description && <p class="featured-card-desc">{featured.data.description}</p>}
-			</div>
-		</a>
-	)}
-
-	<div class="list-header">
-		<h2 class="list-header-title">最新文章</h2>
-		<a href="/posts/" class="list-header-link">全部 →</a>
-	</div>
-	<div class="content-grid">
-		{rest.slice(0, 8).map((post) => (
-			<article class="card">
-				<a href={`/${post.id}/`} class="card-link">
-					<div class="card-body">
-						<div class="card-meta">
-							<time>{post.data.published.toLocaleDateString("zh-CN")}</time>
-							{post.data.tags?.slice(0,2).map((t: string) => <span class="tag">{t}</span>)}
-						</div>
-						<h3 class="card-title">{post.data.title}</h3>
-						{post.data.description && <p class="card-desc">{post.data.description}</p>}
-					</div>
-					{post.data.cover && <div class="card-cover"><img src={post.data.cover} alt={post.data.title} loading="lazy" /></div>}
-				</a>
-			</article>
+	<div class="post-card-list">
+		{posts.slice(0, 8).map((post, i) => (
+			<PostCard entry={post} animationDelay={i * 50} />
 		))}
 	</div>
 </BaseLayout>

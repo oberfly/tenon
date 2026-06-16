@@ -1,6 +1,6 @@
 import { zhCN, type TranslationKeys } from "./locales/zh-CN";
 import { en } from "./locales/en";
-import { siteConfig } from "@/config";
+import { siteConfig } from "@/tenon-config";
 
 // 支持的语言列表
 export const locales = ["zh-CN", "en"] as const;

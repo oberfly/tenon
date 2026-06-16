@@ -10,7 +10,7 @@
 			"binding": "tenon_db",
 			"database_name": "tenon-db",
 			"database_id": "b546ad86-9feb-4dfe-8b14-2e46dcadd510",
-			"remote": true
+			"remote": false
 		}
 	]
 }

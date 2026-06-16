@@ -1,0 +1,37 @@
+---
+/**
+ * Tenon Theme — TagCloud Widget（对齐 Fuwari tags widget）
+ *
+ * - card-base 包裹 + onload-animation
+ * - 竖条装饰标题
+ * - 标签使用 btn-regular 风格
+ */
+
+import { getCollection } from "astro:content";
+
+const allPosts = await getCollection("tenon", ({ data }) => data.module === "posts");
+const tagCount: Record<string, number> = {};
+for (const post of allPosts) {
+	const tags = post.data.tags as string[] || [];
+	for (const t of tags) {
+		tagCount[t] = (tagCount[t] || 0) + 1;
+	}
+}
+const tags = Object.entries(tagCount)
+	.sort((a, b) => a[0].localeCompare(b[0]))
+	.slice(0, 20);
+---
+
+<div class="card-base onload-animation" style="animation-delay: 200ms; padding-bottom: 1rem;">
+	<div class="widget-title-bar">标签</div>
+	<div style="padding: 0 1rem;">
+		<div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+			{tags.map(([tag, count]) => (
+				<a href={`/posts/?tag=${encodeURIComponent(tag)}`} class="tag-btn">
+					{tag}
+				</a>
+			))}
+			{tags.length === 0 && <span class="text-muted">暂无标签</span>}
+		</div>
+	</div>
+</div>

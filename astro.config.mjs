@@ -12,18 +12,18 @@ import remarkDirective from "remark-directive";/* Handle directives */
 import remarkGithubAdmonitionsToDirectives from "remark-github-admonitions-to-directives";
 import remarkMath from "remark-math";
 import remarkSectionize from "remark-sectionize";
-import { AdmonitionComponent } from "./src/plugins/rehype-component-admonition.mjs";
-import { GithubCardComponent } from "./src/plugins/rehype-component-github-card.mjs";
-import rehypeImageFallback from "./src/plugins/rehype-image-fallback.mjs";
-import { parseDirectiveNode } from "./src/plugins/remark-directive-rehype.js";
-import { remarkExcerpt } from "./src/plugins/remark-excerpt.js";
-import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
+import { AdmonitionComponent } from "./src/tenon-plugins/rehype-component-admonition.mjs";
+import { GithubCardComponent } from "./src/tenon-plugins/rehype-component-github-card.mjs";
+import rehypeImageFallback from "./src/tenon-plugins/rehype-image-fallback.mjs";
+import { parseDirectiveNode } from "./src/tenon-plugins/remark-directive-rehype.js";
+import { remarkExcerpt } from "./src/tenon-plugins/remark-excerpt.js";
+import { remarkReadingTime } from "./src/tenon-plugins/remark-reading-time.mjs";
 import rehypeExternalLinks from 'rehype-external-links';
 import expressiveCode from "astro-expressive-code";
 import { pluginCollapsibleSections } from "@expressive-code/plugin-collapsible-sections";
 import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
 // expressive code theme + plugins
-import { pluginCustomCopyButton } from "./src/plugins/expressive-code/custom-copy-button.js";
+import { pluginCustomCopyButton } from "./src/tenon-plugins/expressive-code/custom-copy-button.js";
 // import vercel from "@astrojs/vercel"; // 静态构建不需要 adapter
 
 // https://astro.build/config

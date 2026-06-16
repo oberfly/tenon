@@ -1,39 +1,46 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
-import TagCloud from "@components/widget/TagCloud.astro";
+/**
+ * Tenon — 模块列表页（对齐 Fuwari 架构）
+ *
+ * - BaseLayout isHome=false（35vh banner）
+ * - 使用新 PostCard 组件
+ * - Sidebar: TagCloud + Categories
+ */
+
+import BaseLayout from "../../tenon-layout/blog/BaseLayout.astro";
+import TagCloud from "@tenon-theme/fuwari/widget/TagCloud.astro";
+import Categories from "@tenon-theme/fuwari/widget/Categories.astro";
+import PostCard from "@tenon-theme/fuwari/PostCard.astro";
 import { getCollection } from "astro:content";
 import { getModuleRoutes } from "../../tenon-route/list";
 
 export async function getStaticPaths() {
 	const modules = await getModuleRoutes();
-	return modules.map((mod) => ({ params: { module: mod.slug }, props: { moduleSlug: mod.slug, moduleName: mod.title, count: mod.count } }));
+	return modules.map((mod) => ({
+		params: { module: mod.slug },
+		props: { moduleSlug: mod.slug, moduleName: mod.title, count: mod.count },
+	}));
 }
 
 const { moduleSlug, moduleName, count } = Astro.props;
 const entries = await getCollection("tenon", ({ data }) => data.module === moduleSlug);
 const sorted = entries.sort((a, b) => b.data.published.getTime() - a.data.published.getTime());
 ---
-<BaseLayout title={moduleName}>
-	<Fragment slot="sidebar"><TagCloud /></Fragment>
-	<h1 style="font-size:1.75rem;font-weight:700;margin:0 0 0.25rem;">{moduleName}</h1>
-	<p style="color:var(--color-text-muted);margin-bottom:2rem;">共 {count} 篇</p>
-	{entries.length === 0 ? <p style="color:var(--color-text-muted);">暂无内容。</p> : (
-		<div class="content-grid">
-			{sorted.map((entry) => (
-				<article class="card">
-					<a href={`/${entry.id}/`} class="card-link">
-						<div class="card-body">
-							<div class="card-meta">
-								<time>{entry.data.published.toLocaleDateString("zh-CN")}</time>
-								{entry.data.tags?.slice(0,2).map((t: string) => <span class="tag">{t}</span>)}
-							</div>
-							<h2 class="card-title">{entry.data.title}</h2>
-							{entry.data.description && <p class="card-desc">{entry.data.description}</p>}
-						</div>
-						{entry.data.cover && <div class="card-cover"><img src={entry.data.cover} alt={entry.data.title} loading="lazy" /></div>}
-					</a>
-				</article>
-			))}
-		</div>
-	)}
+
+<BaseLayout title={moduleName} isHome={false}>
+	<Fragment slot="sidebar">
+		<TagCloud />
+		<Categories />
+	</Fragment>
+
+	<div class="post-card-list">
+		{sorted.map((entry, i) => (
+			<PostCard entry={entry} animationDelay={i * 50} />
+		))}
+		{sorted.length === 0 && (
+			<div class="card-base" style="padding:2rem;text-align:center;">
+				<p class="text-muted">暂无内容。</p>
+			</div>
+		)}
+	</div>
 </BaseLayout>

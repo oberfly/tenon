@@ -15,6 +15,9 @@ export default defineConfig({
 			"@": path.resolve(__dirname, "./src"),
 		},
 	},
+	optimizeDeps: {
+		force: true, // 强制重新预构建依赖（目录重命名后旧缓存可能导致 jsxDEV=undefined）
+	},
 	build: {
 		outDir: "../dist/system",
 		emptyOutDir: true,
@@ -26,6 +29,9 @@ export default defineConfig({
 				target: "http://localhost:8788", // wrangler pages dev 默认端口
 				changeOrigin: true,
 			},
+		},
+		headers: {
+			"Cache-Control": "no-store",
 		},
 	},
 });

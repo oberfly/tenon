@@ -1,50 +1,73 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
-import "./index.css";
-import Dashboard from "./pages/Dashboard";
-import Modules from "./pages/Modules";
-import Contents from "./pages/Contents";
+import React, { Suspense, lazy } from "react"
+import ReactDOM from "react-dom/client"
+import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { Toaster } from "sonner"
+import { AppShell } from "./components/layout/app-shell"
+import "./index.css"
 
-function Layout() {
-	const location = useLocation();
+// Lazy-load pages
+const Dashboard = lazy(() => import("./features/dashboard"))
+const Modules = lazy(() => import("./features/modules"))
+const Contents = lazy(() => import("./features/contents"))
+const Fields = lazy(() => import("./features/fields"))
+const Settings = lazy(() => import("./features/settings"))
 
-	return (
-		<div className="min-h-screen flex">
-			{/* Sidebar */}
-			<aside className="w-56 bg-white border-r border-gray-200 p-4 flex flex-col gap-1">
-				<h1 className="text-lg font-bold mb-4">Tenon System</h1>
-				<Link
-					to="/"
-					className={`px-3 py-2 rounded text-sm ${location.pathname === "/" ? "bg-gray-100 font-medium" : "hover:bg-gray-50"}`}
-				>
-					Dashboard
-				</Link>
-				<Link
-					to="/modules"
-					className={`px-3 py-2 rounded text-sm ${location.pathname === "/modules" ? "bg-gray-100 font-medium" : "hover:bg-gray-50"}`}
-				>
-					模块管理
-				</Link>
-				<div className="mt-auto text-xs text-gray-400">Tenon v0.1</div>
-			</aside>
-
-			{/* Main */}
-			<main className="flex-1 p-6">
-				<Routes>
-					<Route path="/" element={<Dashboard />} />
-					<Route path="/modules" element={<Modules />} />
-					<Route path="/contents/:moduleId" element={<Contents />} />
-				</Routes>
-			</main>
-		</div>
-	);
+function LoadingFallback() {
+  return (
+    <div className="flex h-[50vh] items-center justify-center">
+      <div className="text-sm text-muted-foreground">加载中...</div>
+    </div>
+  )
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-	<React.StrictMode>
-		<BrowserRouter>
-			<Layout />
-		</BrowserRouter>
-	</React.StrictMode>,
-);
+  <React.StrictMode>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<AppShell />}>
+          <Route
+            index
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <Dashboard />
+              </Suspense>
+            }
+          />
+          <Route
+            path="modules"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <Modules />
+              </Suspense>
+            }
+          />
+          <Route
+            path="contents"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <Contents />
+              </Suspense>
+            }
+          />
+          <Route
+            path="fields"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <Fields />
+              </Suspense>
+            }
+          />
+          <Route
+            path="settings"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <Settings />
+              </Suspense>
+            }
+          />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+    <Toaster richColors position="top-right" />
+  </React.StrictMode>
+)

@@ -264,16 +264,17 @@ export function d1Loader(opts: D1LoaderOptions = {}): Loader {
 						nextTitle: "",
 					};
 
-					// prev/next 基于本模块内排序
-					// TODO: stage 2 升级为 per-module sorting
-					if (i < sorted.length - 1) {
-						rawData.prevSlug = sorted[i + 1].slug;
-						rawData.prevTitle = sorted[i + 1].title;
-					}
-					if (i > 0) {
-						rawData.nextSlug = sorted[i - 1].slug;
-						rawData.nextTitle = sorted[i - 1].title;
-					}
+					// prev/next — 使用 namespacedId（module/slug）确保链接正确
+						if (i < sorted.length - 1) {
+							const prevMod = moduleMap.get(sorted[i + 1].module_id);
+							rawData.prevSlug = prevMod ? `${prevMod.slug}/${sorted[i + 1].slug}` : sorted[i + 1].slug;
+							rawData.prevTitle = sorted[i + 1].title;
+						}
+						if (i > 0) {
+							const nextMod = moduleMap.get(sorted[i - 1].module_id);
+							rawData.nextSlug = nextMod ? `${nextMod.slug}/${sorted[i - 1].slug}` : sorted[i - 1].slug;
+							rawData.nextTitle = sorted[i - 1].title;
+						}
 
 					// 命名空间化 entry ID：${moduleSlug}/${contentSlug}
 					const namespacedId = `${mod.slug}/${row.slug}`;
